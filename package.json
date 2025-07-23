@@ -1,4 +1,7 @@
 {
+   "engines" : {
+    "node" : ">=22.0.0"
+  },
   "type": "module",
   "name": "bulls_and_cows",
   "version": "1.0.0",
