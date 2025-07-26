@@ -4,8 +4,12 @@ import globals from 'globals';
 
 // Explicitly import the plugin
 import tsPlugin from '@typescript-eslint/eslint-plugin';
+import stylistic from '@stylistic/eslint-plugin'
 
 export default [
+  {
+    ignores: ['dist/**', 'build/**', 'node_modules/**', '*.js', '*.mjs', '*.cjs']
+  },
   // Base JS config
   {
     files: ['**/*.js'],
@@ -22,7 +26,8 @@ export default [
     files: ['**/*.ts'],
     // Register the plugin
     plugins: {
-      '@typescript-eslint': tsPlugin
+      '@typescript-eslint': tsPlugin,
+      '@stylistic': stylistic
     },
     languageOptions: {
       parser: tseslint.parser,
@@ -41,8 +46,21 @@ export default [
       // Your custom rules
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
+      "@stylistic/member-delimiter-style": [
+          "error",
+          {
+            "multiline": {
+              "delimiter": "semi",
+              "requireLast": true
+            },
+            "singleline": {
+              "delimiter": "semi",
+              "requireLast": false
+            }
+          }
+        ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@/semi': 'error',
+      '@stylistic/semi': 'error',
       'no-console': 'error',
       'quotes': ['error', 'single'],
       'indent': ['error', 2, {
