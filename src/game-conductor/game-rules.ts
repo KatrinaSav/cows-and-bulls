@@ -1,4 +1,6 @@
-function generateGameNumber(): string {
+import { GuessAttempt } from './game-conductor';
+
+export function generateGameNumber(): string {
   const gameNumber: Set<number> = new Set();
   while (gameNumber.size < 4) {
     gameNumber.add(getRandomDigit());
@@ -10,28 +12,28 @@ function getRandomDigit(): number {
   return Math.floor(Math.random() * 10);
 }
 
-function isValidGameNumber(gameNumber: string): boolean {
+export function isValidGameNumber(gameNumber: string): boolean {
   if (gameNumber.length !== 4) return false;
   if (!/^\d{4}$/.test(gameNumber)) return false;
   if (new Set(gameNumber).size !== 4) return false;
   return true;
 }
 
-function checkGuess(guess: string, gameNumber: string) {
-  let correctPosition: number = 0;
-  let correctDigit: number = 0;
+export function checkGuess(guess: string, gameNumber: string): GuessAttempt {
+  let bull: number = 0;
+  let cow: number = 0;
 
   for (let i: number = 0; i < 4; i++) {
     if (guess[i] === gameNumber[i]) {
-      correctPosition++;
+      bull++;
     } else if (gameNumber.includes(guess[i])) {
-      correctDigit++;
+      cow++;
     }
   }
 
-  return { correctPosition, correctDigit };
+  return { bull, cow };
 }
 
-function checkWin(guess: string, gameNumber: string): boolean {
+export function checkWin(guess: string, gameNumber: string): boolean {
   return guess === gameNumber;
 }
