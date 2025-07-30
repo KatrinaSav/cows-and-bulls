@@ -1,7 +1,11 @@
-import { isValidGameNumber, checkWin, checkGuess } from './game-rules';
+import { GameSessionId, GamesStorage } from '../game-store/game-store';
+import { GameRulesMap, GameRulesType } from './game-rules/game-rules';
+
 
 export interface CowsAndBullsGame {
-    start(answer: GameSecretNumber): Promise<CowsAndBullsConductor>;
+    start(rulesType: GameRulesType): Promise<GameSessionId>;
+    start(rulesType: GameRulesType, answer: GameSecretNumber): Promise<GameSessionId>;
+    guess(sessionId: GameSessionId, candidate: GameSecretNumber): Promise<GuessResult>;
 }
 
 export interface CowsAndBullsConductor {
@@ -21,36 +25,32 @@ export type GuessAttempt = {
     cow: number;
 };
 
-class CowsAndBullsImpl implements CowsAndBullsGame {
-  public async start(answer: GameSecretNumber): Promise<CowsAndBullsConductor> {
-    const numberValid = isValidGameNumber(answer);
-    if(!numberValid){
-      throw new Error('Invalid picked number format');
-    }
 
-    return new CowsAndBullsConductorImpl(answer);
+class CowsAndBullsGameImpl implements CowsAndBullsGame{
+  public async start(rulesType: GameRulesType): Promise<GameSessionId>;
+  public async start(rulesType: GameRulesType, answer: GameSecretNumber): Promise<GameSessionId>;
+  public async start(rulesType: GameRulesType, answer?: GameSecretNumber): Promise<GameSessionId> {
+    const rules = GameRulesMap[rulesType];
+    if(!answer){
+      return GamesStorage.createGame({secret:rules.pickSecret(),rules:rulesType});
+    }
+    if(!rules.guessValid(answer)){
+      throw new Error('Invalid game number');
+    }
+    return GamesStorage.createGame({secret:answer,rules:rulesType});
+
   }
-};
+  public async guess(sessionId: GameSessionId, candidate: GameSecretNumber): Promise<GuessResult> {
+    const game = await GamesStorage.getGame(sessionId);
+    const rules = GameRulesMap[game.rules];
 
-class CowsAndBullsConductorImpl implements CowsAndBullsConductor {
-  constructor(private readonly secret: GameSecretNumber) {}
-
-  public async guess(candidate: GameSecretNumber): Promise<GuessResult> {
-    const numberValid = isValidGameNumber(candidate);
-    if(!numberValid){
-      throw new Error('Invalid guess format');
+    if(!rules.guessValid(candidate)){
+      throw new Error('Invalid game number');
     }
-
-    const secretGuessed = checkWin(candidate, this.secret);
-    if(secretGuessed){
-      return {
-        guessed: true
-      };
-    }
-
-    return checkGuess(candidate, this.secret);
+    return rules.compare(candidate,game.secret);
   }
+
 }
 
-const CowsAndBulls = new CowsAndBullsImpl()
-export {CowsAndBulls}
+const CowsAndBulls = new CowsAndBullsGameImpl();
+export {CowsAndBulls};
